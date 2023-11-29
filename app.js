@@ -3,6 +3,8 @@ const express = require("express");
 const createError = require("http-errors");
 const path = require("path");
 const morgan = require("morgan");
+const exphbs = require("express-handlebars");
+const { rateLimit } = require("express-rate-limit");
 
 // .env
 const port = process.env.PORT || 4040;
@@ -10,16 +12,43 @@ const port = process.env.PORT || 4040;
 // init app
 const app = express();
 
+// view engine
+app.engine(
+  ".hbs",
+  exphbs.engine({
+    extname: ".hbs",
+    defaultLayout: "main",
+  })
+);
+app.set("view engine", ".hbs");
+app.set("views", "./views");
+
 // app.use
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(express.urlencoded({ extended: true }));
+
+// custom funtions and configurations
+const limiter = rateLimit({
+  windowMs: 3 * 60 * 1000, // 3 minutes
+  max: 500, // Limit each IP to 21 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false,
+  message: `<div style="width:100vh; padding: 1rem; background-color: red; font-size: 32px; font-weight: 700; 
+    text-align: center; margin: 0 auto"> 
+      <h3 style="color: white">You are suspended for sending too many requests!</h3>
+    </div> `,
+});
 
 // default route
-app.get("/", (req, res) => {
-  return res.status(201).json({
-    success: true,
-  });
+app.get("/", limiter, (req, res) => {
+  return res.status(201).redirect("/dbaccounts/login");
 });
+
+// other routes
+const DBAccountRouter = require("./routers/DBAccountRouter");
+app.use("/dbaccounts", DBAccountRouter);
 
 // error handling
 app.use((req, res, next) => {
@@ -36,6 +65,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// initialize server
 app.listen(port, () => {
   console.log(`> Database website running at: http://localhost:${port}`);
 });
