@@ -51,12 +51,39 @@ router
   });
 
 // homepage route
-const dbDirectory = path.join(__dirname, "..", "/databaseBackups/");
-const dbDirectory2 = path.join(__dirname, "..", "/databaseBackups/");
+const DB_NAME = "MessageServer";
+const ARCHIVE_PATH = path.join(__dirname, "..", "dbBackups", `${DB_NAME}.gzip`);
 const cmd = "mongodump --db=MessageServer --archive=MesSer.gzip --gzip";
 router
   .route("/homepage")
   .get(limiter, (req, res) => {
+    // console.log(ARCHIVE_PATH);
+
+    const child = spawn("mongodump", [
+      `--db=${DB_NAME}`,
+      `--archive=${ARCHIVE_PATH}`,
+      `--gzip`,
+    ]);
+
+    child.stdout.on("data", (data) => {
+      console.log("stdout:\n", data);
+    });
+    child.stderr.on("data", (data) => {
+      console.log("stderr:\n", Buffer.from(data).toString());
+    });
+    child.on("error", (error) => {
+      console.log("error:\n", error);
+    });
+    child.on("exit", (code, signal) => {
+      if (code) {
+        console.log("Process exit with code: ", code);
+      } else if (signal) {
+        console.log("Process killed with signal: ", signal);
+      } else {
+        console.log("Back up is successful!");
+      }
+    });
+
     return res.status(201).render("dbaccounts/homepage", {
       document: "Homepage",
       style: "style",
