@@ -7,6 +7,7 @@ const fs = require("fs");
 const createError = require("http-errors");
 const { spawn } = require("child_process");
 const path = require("path");
+const moment = require("moment");
 
 // .env
 const envUsername = process.env.ROOT || "";
@@ -23,7 +24,12 @@ const limiter = rateLimit({
         <h3 style="color: white">You are suspended for sending too many requests!</h3>
       </div> `,
 });
-const { checkLogin } = require("../middlewares/utils");
+const {
+  checkLogin,
+  backupDB,
+  createArchivePath,
+} = require("../middlewares/utils");
+const DB_NAME = "MessageServer";
 
 // /login route
 router
@@ -51,38 +57,13 @@ router
   });
 
 // homepage route
-const DB_NAME = "MessageServer";
-const ARCHIVE_PATH = path.join(__dirname, "..", "dbBackups", `${DB_NAME}.gzip`);
-const cmd = "mongodump --db=MessageServer --archive=MesSer.gzip --gzip";
+// const cmd = "mongodump --db=MessageServer --archive=MesSer.gzip --gzip";
 router
   .route("/homepage")
   .get(limiter, (req, res) => {
+    const ARCHIVE_PATH = createArchivePath(DB_NAME);
     // console.log(ARCHIVE_PATH);
-
-    const child = spawn("mongodump", [
-      `--db=${DB_NAME}`,
-      `--archive=${ARCHIVE_PATH}`,
-      `--gzip`,
-    ]);
-
-    child.stdout.on("data", (data) => {
-      console.log("stdout:\n", data);
-    });
-    child.stderr.on("data", (data) => {
-      console.log("stderr:\n", Buffer.from(data).toString());
-    });
-    child.on("error", (error) => {
-      console.log("error:\n", error);
-    });
-    child.on("exit", (code, signal) => {
-      if (code) {
-        console.log("Process exit with code: ", code);
-      } else if (signal) {
-        console.log("Process killed with signal: ", signal);
-      } else {
-        console.log("Back up is successful!");
-      }
-    });
+    backupDB(DB_NAME, ARCHIVE_PATH);
 
     return res.status(201).render("dbaccounts/homepage", {
       document: "Homepage",

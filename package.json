@@ -19,6 +19,7 @@
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.17.3",
     "http-errors": "^2.0.0",
+    "moment": "^2.29.4",
     "morgan": "^1.10.0",
     "sanitize-html": "^2.11.0"
   },
