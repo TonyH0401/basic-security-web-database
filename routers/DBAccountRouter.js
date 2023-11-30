@@ -5,7 +5,8 @@ const { rateLimit } = require("express-rate-limit");
 const sanitizeHTML = require("sanitize-html");
 const fs = require("fs");
 const createError = require("http-errors");
-const { error } = require("console");
+const { spawn } = require("child_process");
+const path = require("path");
 
 // .env
 const envUsername = process.env.ROOT || "";
@@ -50,10 +51,13 @@ router
   });
 
 // homepage route
+const dbDirectory = path.join(__dirname, "..", "/databaseBackups/");
+const dbDirectory2 = path.join(__dirname, "..", "/databaseBackups/");
+const cmd = "mongodump --db=MessageServer --archive=MesSer.gzip --gzip";
 router
   .route("/homepage")
   .get(limiter, (req, res) => {
-    return res.status(200).render("dbaccounts/homepage", {
+    return res.status(201).render("dbaccounts/homepage", {
       document: "Homepage",
       style: "style",
     });
@@ -66,7 +70,7 @@ router
     next(createError("500", "Error inside Login"));
   })
   .use((err, req, res, next) => {
-    return res.status(500).render("error/404login", {
+    return res.status(500).render("errors/404Login", {
       document: "404 Login",
       message: err.message,
     });
