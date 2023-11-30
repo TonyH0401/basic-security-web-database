@@ -5,9 +5,12 @@ const path = require("path");
 const morgan = require("morgan");
 const exphbs = require("express-handlebars");
 const { rateLimit } = require("express-rate-limit");
+const session = require("express-session");
+const flash = require("connect-flash");
 
 // .env
 const port = process.env.PORT || 4040;
+const sessionSecret = process.env.SESSIONSECRET || "haha";
 
 // init app
 const app = express();
@@ -28,6 +31,15 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  session({
+    secret: sessionSecret,
+    cookie: { maxAge: 10 * 60 * 1000 },
+    saveUninitialized: false,
+    resave: false,
+  })
+);
+app.use(flash());
 
 // custom funtions and configurations
 const limiter = rateLimit({
@@ -58,9 +70,9 @@ app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
   res.status(err.status || 500);
-  return res.status(err.status).json({
-    code: 0,
-    success: false,
+  return res.status(404).render("404", {
+    document: "404",
+    style: "style",
     message: err.message,
   });
 });

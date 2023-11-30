@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="pt-4 loginForm">
+        {{#if error}}
+        <div class="alert alert-danger text-center" role="alert">
+            {{error}}
+        </div>
+        {{/if}}
+        {{#if success}}
+        <div class="alert alert-success text-center" role="alert">
+            {{success}}
+        </div>
+        {{/if}}
+        
+        <form action="/dbaccounts/login" method="POST" id="dbLoginForm">
+            <div class="form-group">
+                <label for="inputUsername" onclick="usernameEasterEgg()">Username</label>
+                <input type="text" class="form-control" id="inputUsername" aria-describedby="emailHelp"
+                    placeholder="Enter Username" name="username" required>
+                <small id="usernameHelp" class="form-text text-muted">Keep your username safe.</small>
+            </div>
+            <div class="form-group">
+                <label for="inputPassword1" onclick="passwordEasterEgg()">Password</label>
+                <input type="password" class="form-control" id="inputPassword1" placeholder="Password" name="password1"
+                    required>
+                <small id="password1Help" class="form-text text-muted"></small>
+            </div>
+            <button type="submit" class="btn btn-primary" form="dbLoginForm">Submit</button>
+        </form>
+    </div>
+</div>
