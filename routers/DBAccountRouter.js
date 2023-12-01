@@ -30,11 +30,16 @@ const {
   createArchivePath,
 } = require("../middlewares/utils");
 const DB_NAME = "MessageServer";
+const DB_DIR = path.join(__dirname, "..", "dbBackups");
 
 // /login route
 router
   .route("/login")
   .get(limiter, (req, res) => {
+    const curretnUser = req.session.user;
+    if (curretnUser) {
+      return res.status(201).redirect("/dbaccounts/homepage");
+    }
     return res.status(201).render("dbaccounts/login", {
       document: "Login Database",
       style: "login",
@@ -53,24 +58,56 @@ router
       req.flash("error", accountIsCorrect.message);
       return res.status(301).redirect("/dbaccounts/login");
     }
+    req.session.user = username;
     return res.status(201).redirect("/dbaccounts/homepage");
   });
 
 // homepage route
-// const cmd = "mongodump --db=MessageServer --archive=MesSer.gzip --gzip";
+// db backups usign mongodump command "mongodump --db=MessageServer --archive=MesSer.gzip --gzip";
 router
   .route("/homepage")
   .get(limiter, (req, res) => {
-    const ARCHIVE_PATH = createArchivePath(DB_NAME);
-    // console.log(ARCHIVE_PATH);
-    backupDB(DB_NAME, ARCHIVE_PATH);
-
+    const curretnUser = req.session.user;
+    if (!curretnUser) {
+      return res.status(301).redirect("/dbaccounts/login");
+    }
+    let fileList = [];
+    fs.readdirSync(DB_DIR).forEach((file) => {
+      fileList.push(`${file}`);
+    });
+    // console.log("File paths in the directory:", fileList);
     return res.status(201).render("dbaccounts/homepage", {
       document: "Homepage",
-      style: "style",
+      style: "homepage",
+      fileList: fileList,
+      fileListCounter: fileList.length,
+      success: req.flash("success") || "",
+      error: req.flash("error") || "",
     });
   })
-  .post((req, res) => {});
+  .post((req, res, next) => {
+    const { dbBackupRequest } = req.body;
+    if (dbBackupRequest != "dbBackupRequest") {
+      next(createError("500", "Error: Data invalid inside Login"));
+      // you need to have a return here to prevent multiple return headers
+      // web dev simplified middleware have this explanation
+      return;
+    }
+    // create a db backups
+    const ARCHIVE_PATH = createArchivePath(DB_NAME);
+    backupDB(DB_NAME, ARCHIVE_PATH);
+    // console.log(ARCHIVE_PATH);
+    req.flash(
+      "success",
+      `Succefully Created New Back Up at ${moment(new Date()).format("LLLL")}`
+    );
+    return res.status(201).redirect("/dbaccounts/homepage");
+  });
+
+router.route("/logout").post((req, res) => {
+  req.session.destroy();
+  return res.status(200).redirect("/");
+});
 
 // /dbaccounts error handling
 router

@@ -34,7 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: sessionSecret,
-    cookie: { maxAge: 10 * 60 * 1000 },
+    // cookie: { maxAge: 10 * 60 * 1000 },
+    cookie: { maxAge: 20 * 1000 },
     saveUninitialized: false,
     resave: false,
   })
@@ -55,7 +56,11 @@ const limiter = rateLimit({
 
 // default route
 app.get("/", limiter, (req, res) => {
-  return res.status(201).redirect("/dbaccounts/login");
+  const curretnUser = req.session.user;
+  if (curretnUser) {
+    return res.status(201).redirect("/dbaccounts/homepage");
+  }
+  return res.status(200).redirect("/dbaccounts/login");
 });
 
 // other routes

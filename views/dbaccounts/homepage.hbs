@@ -2,6 +2,9 @@
     <div class="pt-4 dbContent">
         <h3>Saved Database Backups: {{fileListCounter}}</h3>
     </div>
+    <div class="p-3 dbContent">
+        <button type="button" class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+    </div>
     {{#if error}}
     <div class="alert alert-danger text-center" role="alert">
         {{error}}
@@ -26,7 +29,9 @@
                 Backups</button>
         </form>
     </div>
-    <div class="p-3 dbContent">
-        <button type="button" class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+    <div class="py-3 dbContent">
+        <form action="/dbaccounts/logout" method="POST">
+            <button type="submit" class="btn btn-warning">Logout</button>
+        </form>
     </div>
 </div>
