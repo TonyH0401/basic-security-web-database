@@ -1,3 +1,32 @@
 <div class="container">
-    <div>Homepage</div>
+    <div class="pt-4 dbContent">
+        <h3>Saved Database Backups: {{fileListCounter}}</h3>
+    </div>
+    {{#if error}}
+    <div class="alert alert-danger text-center" role="alert">
+        {{error}}
+    </div>
+    {{/if}}
+    {{#if success}}
+    <div class="alert alert-success text-center" role="alert">
+        {{success}}
+    </div>
+    {{/if}}
+    <div class="w-50 p-3 dbContent">
+        <ul class="list-group">
+            {{#each fileList}}
+            <li class="list-group-item">{{this}}</li>
+            {{/each}}
+
+        </ul>
+    </div>
+    <div class="dbContent">
+        <form action="/dbaccounts/homepage" method="POST">
+            <button type="submit" class="btn btn-danger" name="dbBackupRequest" value="dbBackupRequest">Create Instant
+                Backups</button>
+        </form>
+    </div>
+    <div class="p-3 dbContent">
+        <button type="button" class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+    </div>
 </div>
